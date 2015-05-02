@@ -32,6 +32,20 @@ class Ball
 		ballX = x;
 		ballY = y;
 	}
+
+	public float getCoordX()
+	{
+		return ballX;
+	}
+	public float getCoordY()
+	{
+		return ballY;
+	}
+	public void moveWithoutAfterImage(float new_x, float new_y)
+	{
+		ballX = new_x;
+		ballY = new_y;
+	}
 	
 	public boolean createAfterImage(float new_x, float new_y)
 	{

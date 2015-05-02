@@ -38,19 +38,43 @@ class Base implements IUnit
 	}
 
 	@Override
-	public boolean isHittable(float attackX, float attackY, float attackWidth, float attackHeight)
+	public float getWidth() { return baseWidth; }
+	@Override
+	public float getHeight() { return baseHeight; }
+	@Override
+	public float getCoordX() { return baseX; }
+	@Override
+	public float getCoordY() { return baseY; }
+	@Override
+	public void move(float x, float y)
 	{
-		return Program.isIntersect(baseX - attackAreaSize, baseY - attackAreaSize,
-				baseWidth + 2 * attackAreaSize, baseHeight + 2 * attackAreaSize,
-				attackX, attackY, attackWidth, attackHeight);
+		baseX = x;
+		baseY = y;
 	}
 
 	@Override
-	public void attacked(int damage)
+	public boolean isHittable(float attackX, float attackY, float attackWidth, float attackHeight)
+	{
+		boolean b= Program.isIntersect(baseX - attackAreaSize, baseY - attackAreaSize,
+				baseWidth + 2 * attackAreaSize, baseHeight + 2 * attackAreaSize,
+				attackX, attackY, attackWidth, attackHeight);
+		if (b)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	@Override
+	public void attacked(IUnit attacker, int damage)
 	{
 		baseHp = PApplet.max(baseHp - damage, 0);
 	}
 
+	@Override
 	public void display(PApplet applet)
 	{
 		applet.noStroke();

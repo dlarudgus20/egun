@@ -5,10 +5,19 @@ import processing.core.*;
 
 interface TimerListener
 {
-	public void timerTicked(int index);
+	public void timerTicked(ITimer timer, int index);
 }
 
-class Timer
+interface ITimer
+{
+	public void update(float timespan);
+	public int addTimer(int freq, boolean enabled, TimerListener listener);
+	public boolean removeTimer(int index);
+	public boolean updateTimer(int index, int freq);
+	public boolean enableTimer(int index, boolean enabled, boolean reset);
+}
+
+class Timer implements ITimer
 {
 	private float deciTime = 0;
 	private int nowTime = 0;
@@ -24,7 +33,8 @@ class Timer
 	}
 	private ArrayList<Record> recordPool = new ArrayList<Record>();
 	private ArrayList<Record> recordList = new ArrayList<Record>();
-	
+
+	@Override
 	public void update(float timespan)
 	{
 		if (recordList.size() != 0)
@@ -41,12 +51,13 @@ class Timer
 				if (r.enabled && r.fireTime <= nowTime)
 				{
 					r.fireTime += r.freq;
-					r.listener.timerTicked(r.index);
+					r.listener.timerTicked(this, r.index);
 				}
 			}
 		}
 	}
 	
+	@Override
 	public int addTimer(int freq, boolean enabled, TimerListener listener)
 	{
 		Record r;
@@ -76,6 +87,7 @@ class Timer
 		return r.index;
 	}
 	
+	@Override
 	public boolean removeTimer(int index)
 	{
 		for (int i = 0; i < recordList.size(); i++)
@@ -90,6 +102,7 @@ class Timer
 		return false;
 	}
 	
+	@Override
 	public boolean updateTimer(int index, int freq)
 	{
 		for (int i = 0; i < recordList.size(); i++)
@@ -106,6 +119,7 @@ class Timer
 		return false;
 	}
 	
+	@Override
 	public boolean enableTimer(int index, boolean enabled, boolean reset)
 	{
 		for (int i = 0; i < recordList.size(); i++)
@@ -141,4 +155,15 @@ class Timer
 		
 		return false;
 	}
+}
+
+class FakeTimer implements ITimer
+{
+	private int indexCounter = 0;
+
+	public void update(float timespan) { }
+	public int addTimer(int freq, boolean enabled, TimerListener listener) { return indexCounter++; }
+	public boolean removeTimer(int index) { return true; }
+	public boolean updateTimer(int index, int freq) { return true; }
+	public boolean enableTimer(int index, boolean enabled, boolean reset) { return true; }
 }

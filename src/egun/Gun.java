@@ -7,6 +7,8 @@ class Gun
 	private Crosshair cross = new Crosshair(0, 12, 1, 0, 50, 44, 11);
 	private Ball track = null;
 
+	private boolean hideCross_ = false;
+
 	public class FireInfo
 	{
 		float x, y;
@@ -64,14 +66,18 @@ class Gun
 			return false;
 		}
 	}
-	
+
+	public void hideCrosshair(boolean hide)
+	{
+		hideCross_ = hide;
+	}
+
 	public void display(PApplet applet, float x, float y)
 	{
 		if (track != null)
-		{
 			track.display(applet);
-		}
 
-		cross.display(applet, x, y);
+		if (!hideCross_)
+			cross.display(applet, x, y);
 	}
 }

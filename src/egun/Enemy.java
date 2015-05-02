@@ -4,24 +4,39 @@ import processing.core.*;
 
 class Enemy implements IUnit, TimerListener
 {
-	private PImage enemyImage, maskImage;
-	private int attackPower;
-	private float enemyX, enemyY;
+	private static PImage enemyImage, maskImage;
 
-	private boolean bLive = true;
-	private Team team = null;
-
-	public Enemy(PApplet applet, float x, float y, int power)
+	public static void initImage(PApplet applet)
 	{
 		enemyImage = applet.loadImage("enemy.png");
 		maskImage = applet.loadImage("enemy_mask.png");
 		enemyImage.mask(maskImage);
 		// for isHittable()
 		maskImage.loadPixels();
+	}
 
-		attackPower = power;
+	private static final int attackPower = 1;
+
+	private int enemyActionTimer_ = -1;
+	private static final int enemyActionFreq_ = 500;
+
+	private ITimer timer_;
+	private float enemyX, enemyY;
+
+	private float moveSpeedX_, moveSpeedY_;
+
+	private boolean bLive = true;
+	private Team team = null;
+
+	public Enemy(ITimer timer, float x, float y, int moveSpeedX, int moveSpeedY)
+	{
+		timer_ = timer;
+		enemyActionTimer_ = timer_.addTimer(enemyActionFreq_, true, this);
+
 		enemyX = x;
 		enemyY = y;
+		moveSpeedX_ = moveSpeedX;
+		moveSpeedY_ = moveSpeedY;
 	}
 
 	@Override
@@ -35,15 +50,15 @@ class Enemy implements IUnit, TimerListener
 		team = t;
 	}
 
-	public float getCoordX()
-	{
-		return enemyX;
-	}
-	public float getCoordY()
-	{
-		return enemyY;
-	}
-	
+	@Override
+	public float getWidth() { return enemyImage.width; }
+	@Override
+	public float getHeight() { return enemyImage.height; }
+	@Override
+	public float getCoordX() { return enemyX; }
+	@Override
+	public float getCoordY() { return enemyY; }
+	@Override
 	public void move(float x, float y)
 	{
 		enemyX = x;
@@ -62,11 +77,14 @@ class Enemy implements IUnit, TimerListener
 			final float epsilon = 1e-3f;
 			int x0 = PApplet.ceil(attackX - enemyX - epsilon);
 			int y0 = PApplet.ceil(attackY - enemyY - epsilon);
-			for (int dy = 0; dy < (int)attackHeight; dy++)
+			int hei = PApplet.floor(attackHeight + epsilon);
+			int wid = PApplet.floor(attackWidth + epsilon);
+			for (int dy = 0; dy <= hei; dy++)
 			{
-				for (int dx = 0; dx < (int)attackWidth; dx++)
+				for (int dx = 0; dx <= wid; dx++)
 				{
-					if (maskImage.pixels[(x0 + dx) + enemyImage.width * (y0 + dy)] == 0xffffffff)
+					int idx = (x0 + dx) + enemyImage.width * (y0 + dy);
+					if (idx < maskImage.pixels.length && maskImage.pixels[idx] == 0xffffffff)
 					{
 						return true;
 					}
@@ -78,28 +96,42 @@ class Enemy implements IUnit, TimerListener
 	}
 
 	@Override
-	public void attacked(int damage)
+	public void attacked(IUnit attacker, int damage)
 	{
 		bLive = false;
+		if (isDie())
+		{
+			timer_.removeTimer(enemyActionTimer_);
+		}
 	}
 	@Override
 	public boolean isDie()
 	{
 		return !bLive;
 	}
-
-	@Override
-	public void timerTicked(int index)
-	{
-		if (b.isHittable(enemyX, enemyY, enemyImage.width, enemyImage.height))
-		{
-			PApplet.println("attacked by " + this);
-			b.attacked(attackPower);
-		}
-	}
 	
+	@Override
 	public void display(PApplet applet)
 	{
 		applet.image(enemyImage, enemyX, enemyY);
+	}
+
+	@Override
+	public void timerTicked(ITimer timer, int index)
+	{
+		if (index == enemyActionTimer_)
+		{
+			int hit = team.tryAttackOppsites(this, attackPower, 2,
+					enemyX, enemyY, enemyImage.width, enemyImage.height);
+			if (hit == 0)
+			{
+				enemyX += moveSpeedX_;
+				enemyY += moveSpeedY_;
+			}
+			else
+			{
+				PApplet.println("aaa");
+			}
+		}
 	}
 }

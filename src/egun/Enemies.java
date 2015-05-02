@@ -1,23 +1,23 @@
 package egun;
 
-import java.util.*;
-import processing.core.*;
-
-class Enemies extends Team
+class Enemies extends Team implements TimerListener
 {
-	private ArrayList<Enemy> enemyList_;
+	private int spawnEnemyTimer_ = -1;
+	private static final int spawnEnemyFreq_ = 2000;
 
+	private ITimer timer_;
 	private float spawnX_, spawnY_;
 	private float spawnXGap_, spawnYGap_;
 	private int countOfSpawn_;
 	private int moveSpeedX_, moveSpeedY_;
-	
-	private int enemyPower_;
 
-	public Enemies(float spawnX, float spawnY, float spawnXGap, float spawnYGap, int countOfSpawn,
-		int moveSpeedX, int moveSpeedY, int enemyPower)
+	public Enemies(ITimer timer,
+			float spawnX, float spawnY, float spawnXGap, float spawnYGap, int countOfSpawn,
+			int moveSpeedX, int moveSpeedY)
 	{
-		enemyList_ = new ArrayList<Enemy>();
+		timer_ = timer;
+		spawnEnemyTimer_ = timer_.addTimer(spawnEnemyFreq_, true, this);
+
 		spawnX_ = spawnX;
 		spawnY_ = spawnY;
 		spawnXGap_ = spawnXGap;
@@ -25,54 +25,19 @@ class Enemies extends Team
 		countOfSpawn_ = countOfSpawn;
 		moveSpeedX_ = moveSpeedX;
 		moveSpeedY_ = moveSpeedY;
-		enemyPower_ = enemyPower;
 	}
 	
-	public void spawnEnemy(PApplet applet)
+	@Override
+	public void timerTicked(ITimer timer, int index)
 	{
-		for (int i = 0; i < countOfSpawn_; i++)
+		if (index == spawnEnemyTimer_)
 		{
-			float x = spawnX_ + i * spawnXGap_;
-			float y = spawnY_ + i * spawnYGap_;
-			enemyList_.add(new Enemy(applet, x, y, enemyPower_));
-		}
-	}
-	
-	public void doEnemyAction(Base b)
-	{
-		for (Enemy e : enemyList_)
-		{
-			if (!e.tryAttack(b))
+			for (int i = 0; i < countOfSpawn_; i++)
 			{
-				e.move(e.getCoordX() + moveSpeedX_, e.getCoordY() + moveSpeedY_);
+				float x = spawnX_ + i * spawnXGap_;
+				float y = spawnY_ + i * spawnYGap_;
+				addUnit(new Enemy(timer_, x, y, moveSpeedX_, moveSpeedY_));
 			}
 		}
-	}
-	
-	public int tryHit(float bulletX, float bulletY)
-	{
-		int hit = 0;
-
-		for (int i = 0; i < enemyList_.size(); )
-		{
-			Enemy e = enemyList_.get(i);
-			if (e.isHitted(bulletX, bulletY))
-			{
-				enemyList_.remove(i);
-				hit++;
-			}
-			else
-			{
-				i++;
-			}
-		}
-		
-		return hit;
-	}
-
-	public void display(PApplet applet)
-	{
-		for (Enemy e : enemyList_)
-			e.display(applet);
 	}
 }
